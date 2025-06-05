@@ -2,8 +2,9 @@
 pragma solidity ^0.8.13;
 
 contract VoterContract {
-    uint public numberOfCandidates;
-    uint public startTime;
+    uint256 public numberOfCandidates;
+    uint256 public totalVoters;
+    uint256 public startTime;
     uint256 public stopTime;
     address public admin;
 
@@ -51,12 +52,6 @@ contract VoterContract {
         _;
     }
 
-    modifier duringVoting() {
-        if (block.timestamp < startTime || block.timestamp > stopTime) {
-            revert VotingNotOpen();
-            _;
-        }
-    }
 
     function registerVoter(address _voter, uint8 _age) external OnlyAdmin {
         if (_age < 18) revert VoterUnderage();
@@ -65,6 +60,7 @@ contract VoterContract {
         uint256 _cardExpiry = block.timestamp + 365 days;
 
         voters[_voter] =  Voter({voterAddress:_voter, age:_age, cardExpiry: _cardExpiry, hasVoted: false, isRegistered: true});
+        
 
     }
 
@@ -76,7 +72,11 @@ contract VoterContract {
         candidates[_candidateAddress] = Candidate({candidate: _candidateAddress, fullName: _fullName, votes: 0});
     }
 
-    function vote(address _candidate) external duringVoting {
+    function vote(address _candidate) external {
+        if (block.timestamp < startTime || block.timestamp > stopTime) {
+            revert VotingNotOpen();
+        }
+
         Voter storage voter = voters[msg.sender];
         if (!voter.isRegistered) revert VoterNotRegistered();
         if (voter.voterAddress != msg.sender) revert NotVotersOwnCard();
@@ -102,5 +102,9 @@ contract VoterContract {
 
     function getVoterCardExpiry(address _voter) external view returns (uint256) {
         return voters[_voter].cardExpiry;
+    }
+
+    function getTotalVoters() external view returns (uint256) {
+        return totalVoters;
     }
 }

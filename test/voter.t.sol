@@ -42,8 +42,6 @@ contract VoterContractTest is Test {
     }
 
     function testRegisterVoter() public {
-        console.log(msg.sender);
-        vm.prank(voter1);
         voting.registerVoter(voter1, 19, VotingContract.Gender.Male);
         (,, uint256 voterCard,, bool registered,,) = voting.voters(voter1);
         assertTrue(registered);
